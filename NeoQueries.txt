@@ -1,0 +1,58 @@
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/MuhammadIrfan5/bigaatamanagementneo/main/ad-clicks.csv' AS row
+MERGE (user:User {userId: toInteger(row.userId)})
+ON CREATE SET user.teamId = toInteger(row.teamId)
+MERGE (ad:Ad {adId: toInteger(row.adId)})
+ON CREATE SET ad.adCategory = row.adCategory
+MERGE (user)-[r:CLICKED {txId: toInteger(row.txId), timestamp: row.timestamp, userSessionId: toInteger(row.userSessionId)}]->(ad);
+
+
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/MuhammadIrfan5/bigaatamanagementneo/main/buy-clicks.csv' AS row
+MERGE (user:User {userId: toInteger(row.userId)})
+MERGE (purchase:Purchase {buyId: toInteger(row.buyId)})
+ON CREATE SET purchase.price = toFloat(row.price)
+MERGE (user)-[r:BOUGHT {txId: toInteger(row.txId), timestamp: row.timestamp, userSessionId: toInteger(row.userSessionId)}]->(purchase);
+
+MATCH (n) WHERE (n.buyId) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.buyId AS buyId LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.buyId) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.buyId AS buyId LIMIT 25
+
+MATCH (n) WHERE (n.adId) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.adId AS adId LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.adId) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.adId AS adId LIMIT 25
+
+MATCH (n) WHERE (n.adCategory) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.adCategory AS adCategory LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.adCategory) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.adCategory AS adCategory LIMIT 25
+
+MATCH (n) WHERE (n.price) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.price AS price LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.price) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.price AS price LIMIT 25
+
+MATCH (n) WHERE (n.sessionId) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.sessionId AS sessionId LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.sessionId) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.sessionId AS sessionId LIMIT 25
+
+MATCH (n) WHERE (n.txId) IS NOT NULL 
+RETURN DISTINCT "node" as entity, n.txId AS txId LIMIT 25 
+UNION ALL 
+MATCH ()-[r]-() WHERE (r.txId) IS NOT NULL 
+RETURN DISTINCT "relationship" AS entity, r.txId AS txId LIMIT 25
+
+MATCH p=()-[r:INFLUENCED_PURCHASE]->() RETURN p LIMIT 25
+
+MATCH p=()-[r:BOUGHT]->() RETURN p LIMIT 25
+
+MATCH p=()-[r:BELONGS_TO_TEAM]->() RETURN p LIMIT 25
+
+
+
